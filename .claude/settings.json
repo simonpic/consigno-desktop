@@ -1,0 +1,93 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "timeout": 30,
+            "command": "file=$(jq -r '.tool_input.file_path // empty' 2>/dev/null); if [[ \"$file\" == *.java ]]; then cd \"$CLAUDE_PROJECT_DIR\" && mvn compile -q --no-transfer-progress -pl $(echo \"$file\" | grep -oP 'consigno-[^/]+') 2>&1 | head -30 || true; fi"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "timeout": 60,
+            "command": "file=$(jq -r '.tool_input.file_path // empty' 2>/dev/null); if [[ \"$file\" == *Test.java ]]; then module=$(echo \"$file\" | grep -oP 'consigno-[^/]+'); cd \"$CLAUDE_PROJECT_DIR\" && mvn test -pl \"$module\" -q --no-transfer-progress 2>&1 | tail -20 || true; fi"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "timeout": 5,
+            "command": "cmd=$(jq -r '.tool_input.command // empty' 2>/dev/null); if echo \"$cmd\" | grep -qE 'git push.*(main|master)'; then echo '{\"block\": true, \"message\": \"Push direct sur main interdit. Crée une branche feature/ et ouvre une PR.\"}' >&2; exit 2; fi"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "timeout": 5,
+            "command": "file=$(jq -r '.tool_input.file_path // empty' 2>/dev/null); if echo \"$file\" | grep -qE '\\.(p12|pfx|jks|keystore)$'; then echo '{\"block\": true, \"message\": \"Ne jamais modifier les fichiers de certificats directement. Utiliser CertificateService.\"}' >&2; exit 2; fi"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "timeout": 5,
+            "command": "file=$(jq -r '.tool_input.file_path // empty' 2>/dev/null); if echo \"$file\" | grep -q 'consigno-packaging/'; then branch=$(git -C \"$CLAUDE_PROJECT_DIR\" branch --show-current 2>/dev/null); if [[ \"$branch\" == 'main' || \"$branch\" == 'master' ]]; then echo '{\"block\": true, \"message\": \"Modifications packaging uniquement sur une branche release/.\"}' >&2; exit 2; fi; fi"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "timeout": 10,
+            "command": "cd \"$CLAUDE_PROJECT_DIR\" 2>/dev/null && echo '=== ConsignO Desktop ===' && echo \"Branche: $(git branch --show-current 2>/dev/null)\" && echo \"Derniers commits:\" && git log --oneline -3 2>/dev/null && echo \"Modules: $(ls -d consigno-* 2>/dev/null | tr '\\n' ' ')\" && echo '========================'"
+          }
+        ]
+      }
+    ]
+  },
+  "permissions": {
+    "allow": [
+      "Bash(mvn:*)",
+      "Bash(git log:*)",
+      "Bash(git diff:*)",
+      "Bash(git status:*)",
+      "Bash(git branch:*)",
+      "Bash(git checkout:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(ls:*)",
+      "Bash(cat:*)",
+      "Bash(echo:*)"
+    ],
+    "deny": [
+      "Bash(rm -rf:*)",
+      "Bash(git push --force:*)",
+      "Bash(curl:*)",
+      "Bash(wget:*)"
+    ]
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mvn compile:*)",
+      "Bash(export:*)",
+      "WebFetch(domain:api.github.com)",
+      "Bash(curl:*)",
+      "Bash(unzip:*)",
+      "Bash(TARGET=\"C:/Users/simon/workspace/consigno-desktop/consigno-app/src/main/resources/pdfjs\")",
+      "Read(//c/Users/simon/workspace/consigno-desktop/**)",
+      "Bash(mvn clean:*)",
+      "Bash(/C/Users/simon/.m2/wrapper/dists/apache-maven-3.9.3-bin/326f10f4/apache-maven-3.9.3/bin/mvn clean:*)",
+      "Bash(java -version)",
+      "Read(//c/Users/simon/**)",
+      "Bash(grep \"bin/java$\")",
+      "Bash(JAVA_HOME=\"/C/Users/simon/.jdks/openjdk-21\" PATH=\"/C/Users/simon/.jdks/openjdk-21/bin:$PATH\" /C/Users/simon/.m2/wrapper/dists/apache-maven-3.9.3-bin/326f10f4/apache-maven-3.9.3/bin/mvn clean:*)",
+      "Bash(ls:*)",
+      "Bash(JAVA_HOME=\"C:/Users/simon/.jdks/openjdk-21\" cmd:*)",
+      "Bash(\"/C/Users/simon/.jdks/openjdk-21/bin/keytool\":*)",
+      "Bash(./mvnw clean:*)",
+      "Bash(/c/Users/simon/.m2/wrapper/dists/apache-maven-3.9.3-bin/326f10f4/apache-maven-3.9.3/bin/mvn clean:*)",
+      "Bash(JAVA_HOME=/c/Users/simon/.jdks/openjdk-21 PATH=\"/c/Users/simon/.jdks/openjdk-21/bin:$PATH\" /c/Users/simon/.m2/wrapper/dists/apache-maven-3.9.3-bin/326f10f4/apache-maven-3.9.3/bin/mvn clean:*)",
+      "Bash(JAVA_HOME=/c/Users/simon/.jdks/openjdk-21 PATH=\"/c/Users/simon/.jdks/openjdk-21/bin:$PATH\" /c/Users/simon/.m2/wrapper/dists/apache-maven-3.9.3-bin/54p6kc7m0ap3os8bc4ge28ia2/apache-maven-3.9.3/bin/mvn clean:*)",
+      "Bash(xargs grep:*)",
+      "Bash(/c/Users/simon/.jdks/openjdk-21/bin/jar tf:*)",
+      "Bash(/c/Users/simon/.jdks/openjdk-21/bin/javap:*)",
+      "Bash(JAVA_HOME=/c/Users/simon/.jdks/openjdk-21 /c/Users/simon/.jdks/openjdk-21/bin/java:*)",
+      "Bash(jar tf:*)",
+      "Bash(jar xf:*)",
+      "Bash(javap:*)",
+      "Bash(JAVA_HOME=/c/Users/simon/.jdks/openjdk-21.0.2 /c/Users/simon/.m2/wrapper/dists/apache-maven-3.9.3-bin/326f10f4/apache-maven-3.9.3/bin/mvn compile -q 2>&1)",
+      "Bash(gh auth:*)",
+      "Bash(git init:*)"
+    ]
+  }
+}

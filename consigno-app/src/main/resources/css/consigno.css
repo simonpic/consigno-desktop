@@ -1,0 +1,382 @@
+/* ================================================================
+   ConsignO Desktop — Thème « Ciel Ouvert »
+   Chargé après AtlantaFX PrimerLight (override de tokens + styles)
+   ================================================================ */
+
+/* ──────────────────────────────────────────────────────────────
+   Variables globales — override des tokens AtlantaFX
+   ────────────────────────────────────────────────────────────── */
+.root {
+    -color-accent-fg:       #2D72B8;
+    -color-accent-emphasis: #1A5A9A;
+    -color-accent-muted:    #9AB8D8;
+    -color-accent-subtle:   #EEF3FA;
+    -color-border-default:  #C4D5E8;
+    -color-border-muted:    #CCDAEC;
+    -color-fg-default:      #1C2E3D;
+    -color-fg-muted:        #5A7A8A;
+    -color-bg-default:      #FFFFFF;
+    -color-bg-subtle:       #EEF3FA;
+    -fx-font-family:        'Outfit';
+    -fx-font-size:          12px;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   Barre d'outils — Navy profond
+   ────────────────────────────────────────────────────────────── */
+.tool-bar {
+    -fx-background-color: #1A3650;
+    -fx-padding: 0 10;
+    -fx-spacing: 2;
+    -fx-min-height: 34px;
+    -fx-max-height: 34px;
+}
+
+/* Logo "ConsignO" dans la toolbar */
+.app-logo {
+    -fx-text-fill: #2D72B8;
+    -fx-font-family: 'Outfit';
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-padding: 0 12 0 4;
+}
+
+/* Boutons de la toolbar — style ghost sur fond sombre */
+.tool-bar .button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: rgba(255, 255, 255, 0.72);
+    -fx-font-family: 'Outfit';
+    -fx-font-size: 12px;
+    -fx-padding: 3 10;
+    -fx-cursor: hand;
+}
+
+.tool-bar .button:hover {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: #2D72B8;
+}
+
+.tool-bar .button:pressed {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: #FFFFFF;
+}
+
+.tool-bar .separator .line {
+    -fx-border-color: rgba(255, 255, 255, 0.13);
+    -fx-padding: 0;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   Panneau latéral (sidebar)
+   ────────────────────────────────────────────────────────────── */
+.sidebar {
+    -fx-background-color: #EEF3FA;
+    -fx-border-color: transparent #C4D5E8 transparent transparent;
+    -fx-border-width: 0 1 0 0;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   TitledPanes — sections de la sidebar
+   ────────────────────────────────────────────────────────────── */
+.titled-pane {
+    -fx-text-fill: #1C2E3D;
+}
+
+.titled-pane > .title {
+    -fx-background-color: #EEF3FA;
+    -fx-border-color: transparent transparent #C4D5E8 transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 6 12 6 14;
+    -fx-cursor: default;
+}
+
+.titled-pane > .title > .text {
+    -fx-fill: #1C2E3D;
+    -fx-font-family: 'Outfit';
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+/* Masquer la flèche — sections toujours visibles */
+.titled-pane > .title > .arrow-button {
+    -fx-padding: 0;
+    -fx-min-width: 0;
+    -fx-pref-width: 0;
+    -fx-max-width: 0;
+}
+
+.titled-pane > .title > .arrow-button > .arrow {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+    -fx-min-width: 0;
+    -fx-pref-width: 0;
+}
+
+.titled-pane > .content {
+    -fx-background-color: #EEF3FA;
+    -fx-border-color: transparent;
+    -fx-padding: 0;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   Champs texte
+   ────────────────────────────────────────────────────────────── */
+.text-field, .password-field {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #C4D5E8;
+    -fx-border-radius: 0;
+    -fx-background-radius: 0;
+    -fx-text-fill: #1C2E3D;
+    -fx-prompt-text-fill: #8AAEC8;
+    -fx-font-family: 'Outfit';
+    -fx-font-size: 12px;
+    -fx-padding: 6 8;
+}
+
+.text-field:focused, .password-field:focused {
+    -fx-border-color: #2D72B8;
+    -fx-border-width: 2;
+    -fx-background-color: #FAFEFF;
+}
+
+.text-field:disabled {
+    -fx-opacity: 0.7;
+}
+
+/* Apparence de signature — indiquer qu'elle est draggable */
+#signaturePreviewImage {
+    -fx-cursor: open-hand;
+}
+
+/* Champ chemin .p12 — police mono */
+#p12PathField {
+    -fx-font-family: 'IBM Plex Mono';
+    -fx-font-size: 11px;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   Labels
+   ────────────────────────────────────────────────────────────── */
+.label {
+    -fx-font-family: 'Outfit';
+    -fx-font-size: 12px;
+    -fx-text-fill: #1C2E3D;
+}
+
+.text-muted {
+    -fx-text-fill: #5A7A8A;
+    -fx-font-size: 11px;
+    -fx-font-family: 'Outfit';
+}
+
+/* ──────────────────────────────────────────────────────────────
+   Bouton principal — Signer le document
+   ────────────────────────────────────────────────────────────── */
+.button.accent {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 0%, #2D72B8, #1A5A9A);
+    -fx-background-radius: 0;
+    -fx-border-radius: 0;
+    -fx-text-fill: #FFFFFF;
+    -fx-font-family: 'Outfit';
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(gaussian, rgba(30, 141, 200, 0.35), 8, 0, 0, 2);
+    -fx-cursor: hand;
+}
+
+.button.accent:hover {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 0%, #1A5A9A, #1678A8);
+    -fx-effect: dropshadow(gaussian, rgba(30, 141, 200, 0.55), 10, 0, 0, 3);
+}
+
+.button.accent:pressed {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 0%, #145080, #0F5F8A);
+    -fx-effect: dropshadow(gaussian, rgba(30, 141, 200, 0.2), 4, 0, 0, 1);
+}
+
+/* ──────────────────────────────────────────────────────────────
+   Bouton succès — Ouvrir le document signé
+   ────────────────────────────────────────────────────────────── */
+.button.success {
+    -fx-background-color: #27AE60;
+    -fx-background-radius: 0;
+    -fx-border-radius: 0;
+    -fx-text-fill: #FFFFFF;
+    -fx-font-family: 'Outfit';
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(gaussian, rgba(39, 174, 96, 0.35), 8, 0, 0, 2);
+    -fx-cursor: hand;
+}
+
+.button.success:hover {
+    -fx-background-color: #219150;
+    -fx-effect: dropshadow(gaussian, rgba(39, 174, 96, 0.55), 10, 0, 0, 3);
+}
+
+.button.success:pressed {
+    -fx-background-color: #1A7A42;
+    -fx-effect: none;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   Boutons standard dans la sidebar (ex: "…")
+   ────────────────────────────────────────────────────────────── */
+.sidebar .button {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #C4D5E8;
+    -fx-border-radius: 0;
+    -fx-background-radius: 0;
+    -fx-text-fill: #1C2E3D;
+    -fx-font-family: 'Outfit';
+    -fx-cursor: hand;
+}
+
+.sidebar .button:hover {
+    -fx-background-color: #EEF3FA;
+    -fx-border-color: #2D72B8;
+    -fx-text-fill: #1A5A9A;
+}
+
+.sidebar .button:pressed {
+    -fx-background-color: #D8EFF9;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   SplitPane
+   ────────────────────────────────────────────────────────────── */
+.split-pane {
+    -fx-background-color: #FFFFFF;
+    -fx-padding: 0;
+}
+
+.split-pane-divider {
+    -fx-background-color: #C4D5E8;
+    -fx-padding: 0 1;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   ScrollPane
+   ────────────────────────────────────────────────────────────── */
+.scroll-pane {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.scroll-pane > .viewport {
+    -fx-background-color: transparent;
+}
+
+.scroll-bar:vertical,
+.scroll-bar:horizontal {
+    -fx-background-color: transparent;
+}
+
+.scroll-bar .thumb {
+    -fx-background-color: #9AB8D8;
+    -fx-background-radius: 4;
+}
+
+.scroll-bar .thumb:hover {
+    -fx-background-color: #2D72B8;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   Barre de statut
+   ────────────────────────────────────────────────────────────── */
+.status-bar {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #C4D5E8 transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+    -fx-padding: 5 14;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   SplitPane vertical interne à la sidebar
+   ────────────────────────────────────────────────────────────── */
+.sidebar-split {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+    -fx-border-color: transparent;
+}
+
+.sidebar-split > .split-pane-divider {
+    -fx-background-color: #C4D5E8;
+    -fx-padding: 2 0;   /* hauteur du délimiteur horizontal = 4 px */
+    -fx-cursor: v-resize;
+}
+
+.sidebar-split > .split-pane-divider:hover {
+    -fx-background-color: #2D72B8;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   Explorateur de fichiers PDF (TreeView dans la sidebar)
+   ────────────────────────────────────────────────────────────── */
+.tree-view {
+    -fx-background-color: #EEF3FA;
+    -fx-border-color: transparent;
+}
+
+.tree-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: #1C2E3D;
+    -fx-font-family: 'Outfit';
+    -fx-font-size: 12px;
+    -fx-padding: 3 8;
+}
+
+.tree-cell:selected {
+    -fx-background-color: #D0E4F5;
+    -fx-text-fill: #1A3650;
+}
+
+.tree-cell:hover:!selected {
+    -fx-background-color: #E0EDF8;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   Dialog — popup mot de passe
+   ────────────────────────────────────────────────────────────── */
+.dialog-pane {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #C4D5E8;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-effect: dropshadow(gaussian, rgba(26, 54, 80, 0.22), 24, 0, 0, 8);
+    -fx-padding: 0;
+}
+
+.dialog-pane .header-panel {
+    -fx-background-color: #EEF3FA;
+    -fx-border-color: transparent transparent #C4D5E8 transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 16 20;
+}
+
+.dialog-pane .header-panel .label {
+    -fx-text-fill: #1C2E3D;
+    -fx-font-family: 'Outfit';
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+.dialog-pane > .button-bar {
+    -fx-background-color: #F7FBFF;
+    -fx-border-color: #C4D5E8 transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+    -fx-padding: 10 16;
+}
+
+.dialog-pane > .button-bar .button {
+    -fx-font-family: 'Outfit';
+    -fx-font-size: 12px;
+    -fx-padding: 6 16;
+    -fx-background-radius: 0;
+    -fx-border-radius: 0;
+    -fx-cursor: hand;
+}

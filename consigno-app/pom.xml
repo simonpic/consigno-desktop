@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.consigno</groupId>
+        <artifactId>consigno-desktop</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>consigno-app</artifactId>
+    <name>ConsignO App</name>
+    <description>Module principal JavaFX — UI, injection Guice, bootstrap</description>
+
+    <dependencies>
+        <!-- Modules internes -->
+        <dependency>
+            <groupId>com.consigno</groupId>
+            <artifactId>consigno-pdf</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.consigno</groupId>
+            <artifactId>consigno-crypto</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.consigno</groupId>
+            <artifactId>consigno-common</artifactId>
+        </dependency>
+
+        <!-- JavaFX -->
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-controls</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-fxml</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-swing</artifactId>
+        </dependency>
+
+        <!-- AtlantaFX -->
+        <dependency>
+            <groupId>io.github.mkpaz</groupId>
+            <artifactId>atlantafx-base</artifactId>
+        </dependency>
+
+        <!-- Guice DI -->
+        <dependency>
+            <groupId>com.google.inject</groupId>
+            <artifactId>guice</artifactId>
+        </dependency>
+
+        <!-- Logging -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+        </dependency>
+
+        <!-- Tests -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-junit-jupiter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.testfx</groupId>
+            <artifactId>testfx-junit5</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.testfx</groupId>
+            <artifactId>openjfx-monocle</artifactId>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.openjfx</groupId>
+                <artifactId>javafx-maven-plugin</artifactId>
+                <configuration>
+                    <mainClass>consigno.desktop/com.consigno.desktop.app.ConsignoApplication</mainClass>
+                    <options>
+                        <!-- PDFBox 3 — accès réflexif au système de sécurité Java -->
+                        <option>--add-opens</option>
+                        <option>java.base/java.security=ALL-UNNAMED</option>
+                        <option>--add-opens</option>
+                        <option>java.base/java.lang=ALL-UNNAMED</option>
+                        <option>--add-opens</option>
+                        <option>java.base/sun.security.util=ALL-UNNAMED</option>
+                    </options>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

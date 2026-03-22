@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane
+    fx:id="root"
+    fx:controller="com.consigno.desktop.controller.MainController"
+    xmlns:fx="http://javafx.com/fxml/1"
+    xmlns="http://javafx.com/javafx/21">
+
+    <!-- ═══════════════════════════════════════════════════════
+         BARRE D'OUTILS
+         ═══════════════════════════════════════════════════════ -->
+    <top>
+        <ToolBar styleClass="tool-bar">
+            <Button text="Valider signatures" onAction="#handleValidate" styleClass="button" />
+        </ToolBar>
+    </top>
+
+    <!-- ═══════════════════════════════════════════════════════
+         CONTENU PRINCIPAL
+         ═══════════════════════════════════════════════════════ -->
+    <center>
+        <SplitPane fx:id="mainSplitPane" dividerPositions="0.3">
+
+            <!-- ─── Panneau de contrôle (gauche) ─── -->
+            <BorderPane minWidth="240" maxWidth="360" styleClass="sidebar">
+
+                <center>
+                    <!-- SplitPane vertical : délimiteur draggable entre les deux sections -->
+                    <SplitPane orientation="VERTICAL" dividerPositions="0.5"
+                               styleClass="sidebar-split">
+
+                        <!-- Explorateur PDF — hauteur initiale = 50 % de la sidebar -->
+                        <TitledPane text="Fichiers PDF" collapsible="false" animated="false"
+                                    minHeight="26" maxHeight="Infinity">
+                            <VBox fx:id="fileBrowserContainer" maxHeight="Infinity" />
+                        </TitledPane>
+
+                        <!-- Apparence de la signature -->
+                        <TitledPane text="Apparence" collapsible="false" animated="false"
+                                    minHeight="26" maxHeight="Infinity">
+                            <VBox spacing="8">
+                                <padding><Insets top="8" right="8" bottom="8" left="8"/></padding>
+                                <ImageView fx:id="signaturePreviewImage"
+                                           fitWidth="216" preserveRatio="true" smooth="true" />
+                            </VBox>
+                        </TitledPane>
+
+                    </SplitPane>
+                </center>
+
+                <!-- Bouton signer — ancré en bas de la sidebar -->
+                <bottom>
+                    <Button fx:id="signButton"
+                            text="Signer le document"
+                            onAction="#handleSign"
+                            maxWidth="Infinity"
+                            styleClass="accent"
+                            style="-fx-font-size: 13px; -fx-padding: 10 0;" />
+                </bottom>
+
+            </BorderPane>
+
+            <!-- ─── Visionneuse PDF (droite) ─── -->
+            <StackPane fx:id="pdfViewerContainer"
+                       style="-fx-background-color: -color-bg-subtle;" />
+
+        </SplitPane>
+    </center>
+
+    <!-- ═══════════════════════════════════════════════════════
+         BARRE DE STATUT
+         ═══════════════════════════════════════════════════════ -->
+    <bottom>
+        <HBox spacing="8" alignment="CENTER_LEFT" styleClass="status-bar">
+            <Label fx:id="statusLabel" text="Prêt" HBox.hgrow="ALWAYS" styleClass="text-muted" />
+            <ProgressIndicator fx:id="progressIndicator" prefWidth="16" prefHeight="16" visible="false" />
+        </HBox>
+    </bottom>
+
+</BorderPane>

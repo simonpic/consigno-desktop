@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<DialogPane
+    prefWidth="420"
+    style="-fx-background-radius: 0; -fx-border-radius: 0;"
+    fx:controller="com.consigno.desktop.controller.SignatureDialogController"
+    xmlns:fx="http://javafx.com/fxml/1"
+    xmlns="http://javafx.com/javafx/21">
+
+    <content>
+        <VBox spacing="10">
+            <padding><Insets top="12" right="12" bottom="12" left="12"/></padding>
+
+            <!-- Certificat -->
+            <Label text="Certificat (.p12, .pfx)"
+                   style="-fx-font-size: 13px; -fx-font-weight: bold;" />
+            <HBox spacing="8">
+                <TextField fx:id="certField"
+                           promptText="Aucun certificat sélectionné"
+                           editable="false"
+                           HBox.hgrow="ALWAYS" />
+                <Button fx:id="browseBtn"
+                        text="Parcourir…"
+                        onAction="#handleBrowse"
+                        style="-fx-background-radius: 0; -fx-border-radius: 0; -fx-cursor: hand;" />
+            </HBox>
+
+            <!-- Mot de passe -->
+            <Label text="Mot de passe"
+                   style="-fx-font-size: 13px; -fx-font-weight: bold;" />
+            <PasswordField fx:id="pwdField"
+                           promptText="Mot de passe du certificat" />
+
+        </VBox>
+    </content>
+
+</DialogPane>
