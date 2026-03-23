@@ -8,13 +8,13 @@ import com.consigno.common.model.SignatureResult;
 import com.consigno.crypto.service.CryptoService;
 import com.consigno.pdf.model.SignatureInfo;
 import org.apache.pdfbox.Loader;
-import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDResources;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
-import org.apache.pdfbox.pdmodel.font.PDType1Font;
-import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
+import org.apache.pdfbox.pdmodel.graphics.image.LosslessFactory;
+import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationRubberStamp;
+
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationWidget;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAppearanceDictionary;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAppearanceStream;
@@ -25,20 +25,17 @@ import org.apache.pdfbox.pdmodel.interactive.form.PDSignatureField;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.awt.image.BufferedImage;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * Implémentation PDFBox 3 du service de signature PDF.
@@ -51,8 +48,6 @@ import java.util.Locale;
 public class PdfBoxSignatureServiceImpl implements PdfSignatureService {
 
     private static final Logger log = LoggerFactory.getLogger(PdfBoxSignatureServiceImpl.class);
-
-    private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     private final CryptoService cryptoService;
 
@@ -197,40 +192,37 @@ public class PdfBoxSignatureServiceImpl implements PdfSignatureService {
                 pos.pageNumber(), x, y, w, h);
     }
 
-    /** Construit le flux de contenu PDF pour l'apparence visuelle à une position donnée. */
+    /**
+     * Construit l'appearance stream en embarquant l'image de {@link SignatureAppearanceRenderer}
+     * comme XObject PNG.
+     *
+     * <p>On évite ainsi tout problème de clip sous-pixel lié aux opérateurs de tracé PDF (stroke `S`) :
+     * PDFBox clippe les annotations au {@code floor()} de leur rect en pixels (Java2D exclusif côté
+     * droit/bas), ce qui tronque les traits proches du bord du BBox. Une image rastérisée avec
+     * {@code (int)} (= floor) est dimensionnée exactement pour ce clip — aucun pixel ne dépasse.
+     *
+     * <p>{@link PDPageContentStream#drawImage} applique automatiquement la correction Y-flip standard
+     * PDF (CTM : [w 0 0 -h 0 h]), ce qui garantit un rendu correct dans tous les lecteurs.
+     */
     private PDAppearanceStream buildAppearanceStream(PDDocument doc,
                                                      SignaturePosition pos) throws IOException {
         float w = (float) pos.width();
         float h = (float) pos.height();
 
+        // Même DPI que le viewer (96). (int) = floor() = même arrondi que le clip PDFBox.
+        int imgW = (int) (w * 96f / 72f);
+        int imgH = (int) (h * 96f / 72f);
+        BufferedImage img = SignatureAppearanceRenderer.render(imgW, imgH, LocalDate.now());
+
         PDAppearanceStream stream = new PDAppearanceStream(doc);
         stream.setBBox(new PDRectangle(w, h));
+        stream.setResources(new org.apache.pdfbox.pdmodel.PDResources());
 
-        PDResources resources = new PDResources();
-        PDType1Font fontBold = new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD);
-        PDType1Font fontReg  = new PDType1Font(Standard14Fonts.FontName.HELVETICA);
-        COSName boldName = resources.add(fontBold);
-        COSName regName  = resources.add(fontReg);
-        stream.setResources(resources);
+        PDImageXObject pdImage = LosslessFactory.createFromImage(doc, img);
 
-        String dateStr = LocalDate.now().format(DATE_FMT);
-        String pdfContent = String.format(Locale.US,
-            "q\n" +
-            "1 1 1 rg 0 0 %.2f %.2f re f\n" +
-            "%.3f %.3f %.3f rg 0 0 4 %.2f re f\n" +
-            "%.3f %.3f %.3f RG 0.5 w 0.5 0.5 %.2f %.2f re S\n" +
-            "BT /%s 8 Tf %.3f %.3f %.3f rg 8 %.2f Td (Signe avec ConsignO Desktop) Tj ET\n" +
-            "BT /%s 7 Tf %.3f %.3f %.3f rg 8 %.2f Td (%s) Tj ET\n" +
-            "Q",
-            w, h,
-            0x2D / 255f, 0x72 / 255f, 0xB8 / 255f, h,
-            0x2D / 255f, 0x72 / 255f, 0xB8 / 255f, w - 1, h - 1,
-            boldName.getName(), 0x1C / 255f, 0x2E / 255f, 0x3D / 255f, h - 16,
-            regName.getName(),  0x5A / 255f, 0x7A / 255f, 0x8A / 255f, h - 28, dateStr
-        );
-
-        try (OutputStream os = stream.getCOSObject().createOutputStream()) {
-            os.write(pdfContent.getBytes(StandardCharsets.ISO_8859_1));
+        // PDPageContentStream gère le Y-flip (CTM [w 0 0 -h 0 h]) — rendu identique dans tous les lecteurs
+        try (PDPageContentStream cs = new PDPageContentStream(doc, stream)) {
+            cs.drawImage(pdImage, 0, 0, w, h);
         }
 
         return stream;

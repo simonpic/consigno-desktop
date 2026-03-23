@@ -43,17 +43,21 @@ public final class SignatureAppearanceRenderer {
             g.setColor(Color.WHITE);
             g.fillRect(0, 0, widthPx, heightPx);
 
+            // Clip avant tout tracé pour garantir que rien ne déborde
+            g.clipRect(0, 0, widthPx, heightPx);
+
             // Bande bleue gauche
             g.setColor(PRIMARY);
             g.fillRect(0, 0, 5, heightPx);
 
-            // Bordure bleue
-            g.setStroke(new BasicStroke(1.5f));
+            // Bordure bleue — outer edge à strokeWidth/2 px de chaque bord (pas à 0 = exclu par le clip)
+            float strokeWidth = 1.5f;
+            float inset = strokeWidth; // outer = inset - sw/2 = 0.75px à l'intérieur, toujours visible
+            g.setStroke(new BasicStroke(strokeWidth));
             g.setColor(PRIMARY);
-            g.drawRect(1, 1, widthPx - 2, heightPx - 2);
-
-            // Clip pour éviter tout débordement hors de l'image
-            g.clipRect(0, 0, widthPx, heightPx);
+            g.draw(new java.awt.geom.Rectangle2D.Float(
+                    inset, inset,
+                    widthPx - 2 * inset, heightPx - 2 * inset));
 
             int textX    = 12;
             int maxTextW = widthPx - textX - 4; // espace disponible après la bande bleue

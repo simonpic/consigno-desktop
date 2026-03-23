@@ -66,6 +66,9 @@ public class PdfViewerPane extends StackPane {
     /** Marqueur actuellement sélectionné, ou null. */
     private SignatureMarkerNode selectedMarker;
 
+    /** Génération courante — incrémentée à chaque loadPdf pour invalider les callbacks stale. */
+    private int loadGeneration = 0;
+
     private Consumer<SignaturePosition>                       onSignaturePositionSelected;
     private Consumer<SignaturePosition>                       onSignatureRemoved;
     private BiConsumer<SignaturePosition, SignaturePosition>  onSignaturePositionUpdated;
@@ -119,7 +122,9 @@ public class PdfViewerPane extends StackPane {
     public void loadPdf(Path path) {
         this.currentPdfPath = path;
         pageContainer.getChildren().clear();
+        selectedMarker = null;
 
+        final int gen = ++loadGeneration;
         float dpi = BASE_DPI;
 
         Task<Integer> task = new Task<>() {
@@ -128,7 +133,10 @@ public class PdfViewerPane extends StackPane {
                 int[] count = {0};
                 pdfRenderService.renderDocument(path, dpi, (pageIndex, rendered) -> {
                     count[0]++;
-                    Platform.runLater(() -> addPageNode(pageIndex, rendered, dpi));
+                    // N'ajouter la page que si aucun loadPdf plus récent n'a été lancé
+                    Platform.runLater(() -> {
+                        if (gen == loadGeneration) addPageNode(pageIndex, rendered, dpi);
+                    });
                 });
                 return count[0];
             }
