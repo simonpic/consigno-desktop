@@ -113,6 +113,14 @@ public class MainController {
         fileBrowserPane = new FileBrowserPane();
         fileBrowserContainer.getChildren().add(fileBrowserPane);
         fileBrowserPane.setOnPdfSelected(this::handlePdfSelected);
+        fileBrowserPane.setOnSignRequested(path -> {
+            handlePdfSelected(path);
+            handleSign();
+        });
+        fileBrowserPane.setOnValidateRequested(path -> {
+            handlePdfSelected(path);
+            handleValidate();
+        });
 
         // Preview de l'apparence dans la sidebar (ratio 3:1, plus lisible)
         signaturePreviewImage.setImage(SwingFXUtils.toFXImage(

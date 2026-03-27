@@ -1,13 +1,18 @@
 package com.consigno.desktop.view.filesystem;
 
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
+import javafx.scene.input.MouseButton;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.awt.Desktop;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -20,13 +25,22 @@ import java.util.function.Consumer;
 /**
  * Composant TreeView affichant l'arborescence du répertoire home,
  * filtré aux dossiers et fichiers PDF uniquement.
+ *
+ * <ul>
+ *   <li>Double-clic sur un PDF → ouvre le document dans le viewer</li>
+ *   <li>Clic droit sur un PDF → menu contextuel (Ouvrir, Signer,
+ *       Valider les signatures, Révéler dans l'explorateur)</li>
+ * </ul>
  */
 public class FileBrowserPane extends VBox {
 
     private static final Logger log = LoggerFactory.getLogger(FileBrowserPane.class);
 
     private final TreeView<Path> treeView;
+
     private Consumer<Path> onPdfSelected;
+    private Consumer<Path> onSignRequested;
+    private Consumer<Path> onValidateRequested;
 
     public FileBrowserPane() {
         Path root = Path.of(System.getProperty("user.home"));
@@ -36,13 +50,19 @@ public class FileBrowserPane extends VBox {
 
         treeView = new TreeView<>(rootItem);
         treeView.setShowRoot(true);
-        treeView.setCellFactory(tv -> new PathTreeCell());
+        treeView.setCellFactory(tv -> new PathTreeCell(
+                path -> { if (onPdfSelected     != null) onPdfSelected.accept(path); },
+                path -> { if (onSignRequested   != null) onSignRequested.accept(path); },
+                path -> { if (onValidateRequested != null) onValidateRequested.accept(path); }
+        ));
         VBox.setVgrow(treeView, Priority.ALWAYS);
 
-        treeView.getSelectionModel().selectedItemProperty().addListener((obs, old, selected) -> {
-            if (selected != null && selected.getValue() != null && isPdf(selected.getValue())) {
-                if (onPdfSelected != null) {
-                    onPdfSelected.accept(selected.getValue());
+        // Double-clic gauche → ouvrir le PDF dans le viewer
+        treeView.setOnMouseClicked(event -> {
+            if (event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2) {
+                TreeItem<Path> selected = treeView.getSelectionModel().getSelectedItem();
+                if (selected != null && selected.getValue() != null && isPdf(selected.getValue())) {
+                    if (onPdfSelected != null) onPdfSelected.accept(selected.getValue());
                 }
             }
         });
@@ -52,16 +72,15 @@ public class FileBrowserPane extends VBox {
         setMaxHeight(Double.MAX_VALUE);
     }
 
-    public void setOnPdfSelected(Consumer<Path> callback) {
-        this.onPdfSelected = callback;
-    }
+    public void setOnPdfSelected(Consumer<Path> callback)      { this.onPdfSelected = callback; }
+    public void setOnSignRequested(Consumer<Path> callback)    { this.onSignRequested = callback; }
+    public void setOnValidateRequested(Consumer<Path> callback){ this.onValidateRequested = callback; }
 
     /** Recharge le nœud racine (utile après une signature in-place). */
     public void refresh() {
         TreeItem<Path> selected = treeView.getSelectionModel().getSelectedItem();
         Path selectedPath = selected != null ? selected.getValue() : null;
 
-        // Recharger les enfants du parent du fichier sélectionné
         if (selectedPath != null) {
             refreshParent(treeView.getRoot(), selectedPath.getParent());
         }
@@ -100,16 +119,13 @@ public class FileBrowserPane extends VBox {
     }
 
     private List<TreeItem<Path>> loadChildren(Path dir) {
-        List<Path> dirs  = new ArrayList<>();
-        List<Path> pdfs  = new ArrayList<>();
+        List<Path> dirs = new ArrayList<>();
+        List<Path> pdfs = new ArrayList<>();
 
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir, this::accept)) {
             for (Path p : stream) {
-                if (Files.isDirectory(p)) {
-                    dirs.add(p);
-                } else {
-                    pdfs.add(p);
-                }
+                if (Files.isDirectory(p)) dirs.add(p);
+                else                      pdfs.add(p);
             }
         } catch (IOException e) {
             log.warn("Impossible de lister : {}", dir, e);
@@ -120,8 +136,8 @@ public class FileBrowserPane extends VBox {
         pdfs.sort(byName);
 
         List<TreeItem<Path>> items = new ArrayList<>(dirs.size() + pdfs.size());
-        for (Path d : dirs)  items.add(createDirItem(d));
-        for (Path f : pdfs)  items.add(new TreeItem<>(f));
+        for (Path d : dirs) items.add(createDirItem(d));
+        for (Path f : pdfs) items.add(new TreeItem<>(f));
         return items;
     }
 
@@ -138,8 +154,7 @@ public class FileBrowserPane extends VBox {
 
     private boolean isPdf(Path path) {
         if (Files.isDirectory(path)) return false;
-        String name = path.getFileName().toString().toLowerCase();
-        return name.endsWith(".pdf");
+        return path.getFileName().toString().toLowerCase().endsWith(".pdf");
     }
 
     // -------------------------------------------------------------------------
@@ -147,18 +162,65 @@ public class FileBrowserPane extends VBox {
     // -------------------------------------------------------------------------
 
     private static final class PathTreeCell extends TreeCell<Path> {
+
+        private final Consumer<Path> openCb;
+        private final Consumer<Path> signCb;
+        private final Consumer<Path> validateCb;
+
+        PathTreeCell(Consumer<Path> openCb, Consumer<Path> signCb, Consumer<Path> validateCb) {
+            this.openCb     = openCb;
+            this.signCb     = signCb;
+            this.validateCb = validateCb;
+        }
+
         @Override
         protected void updateItem(Path item, boolean empty) {
             super.updateItem(item, empty);
             if (empty || item == null) {
                 setText(null);
                 setGraphic(null);
+                setContextMenu(null);
                 return;
             }
+
             boolean isDir = Files.isDirectory(item);
             String icon = isDir ? "\uD83D\uDCC1" : "\uD83D\uDCC4"; // 📁 ou 📄
             setText(icon + "  " + item.getFileName());
             setGraphic(null);
+
+            if (isDir) {
+                setContextMenu(null);
+            } else {
+                setContextMenu(buildContextMenu(item));
+            }
+        }
+
+        private ContextMenu buildContextMenu(Path pdf) {
+            MenuItem openItem     = new MenuItem("Ouvrir");
+            MenuItem signItem     = new MenuItem("Signer");
+            MenuItem validateItem = new MenuItem("Valider les signatures");
+            MenuItem revealItem   = new MenuItem("Révéler dans l'explorateur");
+
+            openItem.setOnAction(e     -> openCb.accept(pdf));
+            signItem.setOnAction(e     -> signCb.accept(pdf));
+            validateItem.setOnAction(e -> validateCb.accept(pdf));
+            revealItem.setOnAction(e   -> reveal(pdf));
+
+            return new ContextMenu(openItem, signItem, validateItem,
+                    new SeparatorMenuItem(), revealItem);
+        }
+
+        private static void reveal(Path pdf) {
+            try {
+                Desktop.getDesktop().browseFileDirectory(pdf.toFile());
+            } catch (UnsupportedOperationException | NullPointerException ex) {
+                // Fallback : ouvrir le dossier parent
+                try {
+                    Desktop.getDesktop().open(pdf.getParent().toFile());
+                } catch (IOException ignored) {
+                    // Rien à faire si le système ne supporte pas Desktop
+                }
+            }
         }
     }
 }
