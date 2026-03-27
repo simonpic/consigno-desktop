@@ -9,6 +9,7 @@ import com.consigno.crypto.service.CryptoService;
 import com.consigno.desktop.service.NotificationService;
 import com.consigno.desktop.view.filesystem.FileBrowserPane;
 import com.consigno.desktop.view.pdf.PdfViewerPane;
+import com.consigno.pdf.service.PdfConversionService;
 import com.consigno.pdf.service.PdfSignatureService;
 import com.consigno.pdf.service.PdfValidationService;
 import com.consigno.pdf.service.SignatureAppearanceRenderer;
@@ -56,6 +57,7 @@ public class MainController {
 
     private final PdfSignatureService   pdfSignatureService;
     private final PdfValidationService  pdfValidationService;
+    private final PdfConversionService  pdfConversionService;
     private final CryptoService         cryptoService;
     private final NotificationService   notificationService;
     private final PdfViewerPane         pdfViewerPane;
@@ -81,11 +83,13 @@ public class MainController {
     @Inject
     public MainController(PdfSignatureService pdfSignatureService,
                           PdfValidationService pdfValidationService,
+                          PdfConversionService pdfConversionService,
                           CryptoService cryptoService,
                           NotificationService notificationService,
                           PdfViewerPane pdfViewerPane) {
         this.pdfSignatureService  = pdfSignatureService;
         this.pdfValidationService = pdfValidationService;
+        this.pdfConversionService = pdfConversionService;
         this.cryptoService        = cryptoService;
         this.notificationService  = notificationService;
         this.pdfViewerPane        = pdfViewerPane;
@@ -121,6 +125,7 @@ public class MainController {
             handlePdfSelected(path);
             handleValidate();
         });
+        fileBrowserPane.setOnConvertRequested(this::handleConvertToPdfA);
 
         // Preview de l'apparence dans la sidebar (ratio 3:1, plus lisible)
         signaturePreviewImage.setImage(SwingFXUtils.toFXImage(
@@ -331,6 +336,33 @@ public class MainController {
         });
 
         return dialog.showAndWait();
+    }
+
+    // -------------------------------------------------------------------------
+    // Conversion PDF/A
+    // -------------------------------------------------------------------------
+
+    private void handleConvertToPdfA(Path pdf) {
+        String name = pdf.getFileName().toString();
+        String outName = name.endsWith(".pdf")
+                ? name.substring(0, name.length() - 4) + "_pdfa.pdf"
+                : name + "_pdfa.pdf";
+        Path output = pdf.getParent().resolve(outName);
+
+        Task<Void> task = new Task<>() {
+            @Override
+            protected Void call() throws Exception {
+                pdfConversionService.convertToPdfA(pdf, output);
+                return null;
+            }
+        };
+        task.setOnSucceeded(e -> {
+            fileBrowserPane.refresh();
+            notificationService.showSuccess("Converti en PDF/A : " + outName);
+        });
+        task.setOnFailed(e -> notificationService.showError(
+                "Échec de la conversion PDF/A", task.getException()));
+        executor.execute(task);
     }
 
     // -------------------------------------------------------------------------

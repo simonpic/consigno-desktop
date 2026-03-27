@@ -41,6 +41,7 @@ public class FileBrowserPane extends VBox {
     private Consumer<Path> onPdfSelected;
     private Consumer<Path> onSignRequested;
     private Consumer<Path> onValidateRequested;
+    private Consumer<Path> onConvertRequested;
 
     public FileBrowserPane() {
         Path root = Path.of(System.getProperty("user.home"));
@@ -51,9 +52,10 @@ public class FileBrowserPane extends VBox {
         treeView = new TreeView<>(rootItem);
         treeView.setShowRoot(true);
         treeView.setCellFactory(tv -> new PathTreeCell(
-                path -> { if (onPdfSelected     != null) onPdfSelected.accept(path); },
-                path -> { if (onSignRequested   != null) onSignRequested.accept(path); },
-                path -> { if (onValidateRequested != null) onValidateRequested.accept(path); }
+                path -> { if (onPdfSelected       != null) onPdfSelected.accept(path); },
+                path -> { if (onSignRequested     != null) onSignRequested.accept(path); },
+                path -> { if (onValidateRequested != null) onValidateRequested.accept(path); },
+                path -> { if (onConvertRequested  != null) onConvertRequested.accept(path); }
         ));
         VBox.setVgrow(treeView, Priority.ALWAYS);
 
@@ -72,9 +74,10 @@ public class FileBrowserPane extends VBox {
         setMaxHeight(Double.MAX_VALUE);
     }
 
-    public void setOnPdfSelected(Consumer<Path> callback)      { this.onPdfSelected = callback; }
-    public void setOnSignRequested(Consumer<Path> callback)    { this.onSignRequested = callback; }
-    public void setOnValidateRequested(Consumer<Path> callback){ this.onValidateRequested = callback; }
+    public void setOnPdfSelected(Consumer<Path> callback)       { this.onPdfSelected = callback; }
+    public void setOnSignRequested(Consumer<Path> callback)     { this.onSignRequested = callback; }
+    public void setOnValidateRequested(Consumer<Path> callback) { this.onValidateRequested = callback; }
+    public void setOnConvertRequested(Consumer<Path> callback)  { this.onConvertRequested = callback; }
 
     /** Recharge le nœud racine (utile après une signature in-place). */
     public void refresh() {
@@ -166,11 +169,14 @@ public class FileBrowserPane extends VBox {
         private final Consumer<Path> openCb;
         private final Consumer<Path> signCb;
         private final Consumer<Path> validateCb;
+        private final Consumer<Path> convertCb;
 
-        PathTreeCell(Consumer<Path> openCb, Consumer<Path> signCb, Consumer<Path> validateCb) {
+        PathTreeCell(Consumer<Path> openCb, Consumer<Path> signCb,
+                     Consumer<Path> validateCb, Consumer<Path> convertCb) {
             this.openCb     = openCb;
             this.signCb     = signCb;
             this.validateCb = validateCb;
+            this.convertCb  = convertCb;
         }
 
         @Override
@@ -199,14 +205,16 @@ public class FileBrowserPane extends VBox {
             MenuItem openItem     = new MenuItem("Ouvrir");
             MenuItem signItem     = new MenuItem("Signer");
             MenuItem validateItem = new MenuItem("Valider les signatures");
+            MenuItem convertItem  = new MenuItem("Convertir en PDF/A");
             MenuItem revealItem   = new MenuItem("Révéler dans l'explorateur");
 
             openItem.setOnAction(e     -> openCb.accept(pdf));
             signItem.setOnAction(e     -> signCb.accept(pdf));
             validateItem.setOnAction(e -> validateCb.accept(pdf));
+            convertItem.setOnAction(e  -> convertCb.accept(pdf));
             revealItem.setOnAction(e   -> reveal(pdf));
 
-            return new ContextMenu(openItem, signItem, validateItem,
+            return new ContextMenu(openItem, signItem, validateItem, convertItem,
                     new SeparatorMenuItem(), revealItem);
         }
 

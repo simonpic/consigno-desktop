@@ -1,10 +1,12 @@
 package com.consigno.desktop.app;
 
 import com.consigno.crypto.service.CryptoService;
+import com.consigno.pdf.service.GhostscriptConversionServiceImpl;
 import com.consigno.pdf.service.PdfBoxFormServiceImpl;
 import com.consigno.pdf.service.PdfBoxRenderServiceImpl;
 import com.consigno.pdf.service.PdfBoxSignatureServiceImpl;
 import com.consigno.pdf.service.PdfBoxValidationServiceImpl;
+import com.consigno.pdf.service.PdfConversionService;
 import com.consigno.pdf.service.PdfFormService;
 import com.consigno.pdf.service.PdfRenderService;
 import com.consigno.pdf.service.PdfSignatureService;
@@ -48,5 +50,11 @@ public class PdfModule extends AbstractModule {
     @Singleton
     PdfRenderService providePdfRenderService() {
         return new PdfBoxRenderServiceImpl();
+    }
+
+    @Provides
+    @Singleton
+    PdfConversionService providePdfConversionService() {
+        return new GhostscriptConversionServiceImpl();
     }
 }
