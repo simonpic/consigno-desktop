@@ -7,6 +7,7 @@ import com.consigno.common.model.SignatureResult;
 import com.consigno.common.model.ValidationResult;
 import com.consigno.crypto.service.CryptoService;
 import com.consigno.desktop.service.NotificationService;
+import com.consigno.desktop.service.SystemService;
 import com.consigno.desktop.view.filesystem.FileBrowserPane;
 import com.consigno.desktop.view.pdf.PdfViewerPane;
 import com.consigno.pdf.service.PdfConversionService;
@@ -60,6 +61,7 @@ public class MainController {
     private final PdfConversionService  pdfConversionService;
     private final CryptoService         cryptoService;
     private final NotificationService   notificationService;
+    private final SystemService         systemService;
     private final PdfViewerPane         pdfViewerPane;
 
     private final Executor executor = Executors.newCachedThreadPool(r -> {
@@ -86,12 +88,14 @@ public class MainController {
                           PdfConversionService pdfConversionService,
                           CryptoService cryptoService,
                           NotificationService notificationService,
+                          SystemService systemService,
                           PdfViewerPane pdfViewerPane) {
         this.pdfSignatureService  = pdfSignatureService;
         this.pdfValidationService = pdfValidationService;
         this.pdfConversionService = pdfConversionService;
         this.cryptoService        = cryptoService;
         this.notificationService  = notificationService;
+        this.systemService        = systemService;
         this.pdfViewerPane        = pdfViewerPane;
     }
 
@@ -126,6 +130,16 @@ public class MainController {
             handleValidate();
         });
         fileBrowserPane.setOnConvertRequested(this::handleConvertToPdfA);
+        if (systemService.getAdobeAcrobatPath().isPresent()) {
+            fileBrowserPane.setAdobeAvailable(true);
+            fileBrowserPane.setOnOpenWithAdobeRequested(path -> {
+                try {
+                    systemService.openWithAdobeAcrobat(path);
+                } catch (IOException e) {
+                    notificationService.showError("Impossible d'ouvrir avec Adobe Acrobat", e);
+                }
+            });
+        }
 
         // Preview de l'apparence dans la sidebar (ratio 3:1, plus lisible)
         signaturePreviewImage.setImage(SwingFXUtils.toFXImage(

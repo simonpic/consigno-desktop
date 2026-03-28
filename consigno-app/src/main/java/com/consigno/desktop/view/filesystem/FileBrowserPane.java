@@ -20,6 +20,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 
 /**
@@ -42,6 +43,8 @@ public class FileBrowserPane extends VBox {
     private Consumer<Path> onSignRequested;
     private Consumer<Path> onValidateRequested;
     private Consumer<Path> onConvertRequested;
+    private Consumer<Path> onOpenWithAdobeRequested;
+    private boolean        adobeAvailable = false;
 
     public FileBrowserPane() {
         Path root = Path.of(System.getProperty("user.home"));
@@ -52,10 +55,12 @@ public class FileBrowserPane extends VBox {
         treeView = new TreeView<>(rootItem);
         treeView.setShowRoot(true);
         treeView.setCellFactory(tv -> new PathTreeCell(
-                path -> { if (onPdfSelected       != null) onPdfSelected.accept(path); },
-                path -> { if (onSignRequested     != null) onSignRequested.accept(path); },
-                path -> { if (onValidateRequested != null) onValidateRequested.accept(path); },
-                path -> { if (onConvertRequested  != null) onConvertRequested.accept(path); }
+                path -> { if (onPdfSelected            != null) onPdfSelected.accept(path); },
+                path -> { if (onSignRequested          != null) onSignRequested.accept(path); },
+                path -> { if (onValidateRequested      != null) onValidateRequested.accept(path); },
+                path -> { if (onConvertRequested       != null) onConvertRequested.accept(path); },
+                path -> { if (onOpenWithAdobeRequested != null) onOpenWithAdobeRequested.accept(path); },
+                () -> adobeAvailable
         ));
         VBox.setVgrow(treeView, Priority.ALWAYS);
 
@@ -74,10 +79,12 @@ public class FileBrowserPane extends VBox {
         setMaxHeight(Double.MAX_VALUE);
     }
 
-    public void setOnPdfSelected(Consumer<Path> callback)       { this.onPdfSelected = callback; }
-    public void setOnSignRequested(Consumer<Path> callback)     { this.onSignRequested = callback; }
-    public void setOnValidateRequested(Consumer<Path> callback) { this.onValidateRequested = callback; }
-    public void setOnConvertRequested(Consumer<Path> callback)  { this.onConvertRequested = callback; }
+    public void setOnPdfSelected(Consumer<Path> callback)            { this.onPdfSelected = callback; }
+    public void setOnSignRequested(Consumer<Path> callback)          { this.onSignRequested = callback; }
+    public void setOnValidateRequested(Consumer<Path> callback)      { this.onValidateRequested = callback; }
+    public void setOnConvertRequested(Consumer<Path> callback)       { this.onConvertRequested = callback; }
+    public void setOnOpenWithAdobeRequested(Consumer<Path> callback) { this.onOpenWithAdobeRequested = callback; }
+    public void setAdobeAvailable(boolean available)                 { this.adobeAvailable = available; }
 
     /** Recharge le nœud racine (utile après une signature in-place). */
     public void refresh() {
@@ -166,17 +173,22 @@ public class FileBrowserPane extends VBox {
 
     private static final class PathTreeCell extends TreeCell<Path> {
 
-        private final Consumer<Path> openCb;
-        private final Consumer<Path> signCb;
-        private final Consumer<Path> validateCb;
-        private final Consumer<Path> convertCb;
+        private final Consumer<Path>  openCb;
+        private final Consumer<Path>  signCb;
+        private final Consumer<Path>  validateCb;
+        private final Consumer<Path>  convertCb;
+        private final Consumer<Path>  adobeCb;
+        private final BooleanSupplier adobeAvailableSupplier;
 
         PathTreeCell(Consumer<Path> openCb, Consumer<Path> signCb,
-                     Consumer<Path> validateCb, Consumer<Path> convertCb) {
-            this.openCb     = openCb;
-            this.signCb     = signCb;
-            this.validateCb = validateCb;
-            this.convertCb  = convertCb;
+                     Consumer<Path> validateCb, Consumer<Path> convertCb,
+                     Consumer<Path> adobeCb, BooleanSupplier adobeAvailableSupplier) {
+            this.openCb                 = openCb;
+            this.signCb                 = signCb;
+            this.validateCb             = validateCb;
+            this.convertCb              = convertCb;
+            this.adobeCb                = adobeCb;
+            this.adobeAvailableSupplier = adobeAvailableSupplier;
         }
 
         @Override
@@ -214,8 +226,19 @@ public class FileBrowserPane extends VBox {
             convertItem.setOnAction(e  -> convertCb.accept(pdf));
             revealItem.setOnAction(e   -> reveal(pdf));
 
-            return new ContextMenu(openItem, signItem, validateItem, convertItem,
-                    new SeparatorMenuItem(), revealItem);
+            List<MenuItem> items = new ArrayList<>(List.of(
+                    openItem, signItem, validateItem, convertItem));
+
+            if (adobeAvailableSupplier.getAsBoolean()) {
+                MenuItem adobeItem = new MenuItem("Ouvrir avec Adobe Acrobat");
+                adobeItem.setOnAction(e -> adobeCb.accept(pdf));
+                items.add(adobeItem);
+            }
+
+            items.add(new SeparatorMenuItem());
+            items.add(revealItem);
+
+            return new ContextMenu(items.toArray(new MenuItem[0]));
         }
 
         private static void reveal(Path pdf) {
