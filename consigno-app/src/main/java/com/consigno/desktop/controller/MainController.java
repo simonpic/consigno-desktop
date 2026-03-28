@@ -5,6 +5,7 @@ import com.consigno.crypto.service.CryptoService;
 import com.consigno.desktop.controller.handler.AdobeOpenHandler;
 import com.consigno.desktop.controller.handler.CertAndPassword;
 import com.consigno.desktop.controller.handler.PdfConvertHandler;
+import com.consigno.desktop.controller.handler.PdfDeleteHandler;
 import com.consigno.desktop.controller.handler.PdfSelectionHandler;
 import com.consigno.desktop.controller.handler.PdfSessionState;
 import com.consigno.desktop.controller.handler.PdfSignHandler;
@@ -105,6 +106,7 @@ public class MainController {
                 notificationService, ui, executor);
         PdfConvertHandler convertHandler = new PdfConvertHandler(pdfConversionService,
                 notificationService, ui, executor);
+        PdfDeleteHandler deleteHandler = new PdfDeleteHandler(notificationService, session, ui);
 
         pdfViewerPane.setOnSignaturePositionSelected(pos -> {
             session.getPendingPositions().add(pos);
@@ -135,6 +137,7 @@ public class MainController {
             validateHandler.handle();
         });
         fileBrowserPane.setOnConvertRequested(convertHandler::handle);
+        fileBrowserPane.setOnDeleteRequested(deleteHandler::handle);
         if (systemService.getAdobeAcrobatPath().isPresent()) {
             AdobeOpenHandler adobeHandler = new AdobeOpenHandler(systemService, notificationService);
             fileBrowserPane.setAdobeAvailable(true);

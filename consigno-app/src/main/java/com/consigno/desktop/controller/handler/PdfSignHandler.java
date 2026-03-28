@@ -104,9 +104,11 @@ public final class PdfSignHandler {
                 ui.refreshFileBrowser();
                 pdfViewerPane.loadPdf(pdfToSign);
             } catch (IOException ioEx) {
-                notificationService.showError("Impossible de remplacer le fichier original", ioEx);
                 log.error("Move temp→original échoué", ioEx);
+                try { Files.deleteIfExists(tempPath); } catch (IOException ignored) {}
+                notificationService.showError("Impossible de remplacer le fichier original", ioEx);
             } finally {
+                Arrays.fill(password, '\0');
                 ui.setSignButtonDisabled(false);
                 ui.setBusy(false);
             }

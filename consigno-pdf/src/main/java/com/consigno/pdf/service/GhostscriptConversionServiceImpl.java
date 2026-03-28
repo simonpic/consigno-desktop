@@ -24,6 +24,8 @@ public class GhostscriptConversionServiceImpl implements PdfConversionService {
 
     private static final Logger log = LoggerFactory.getLogger(GhostscriptConversionServiceImpl.class);
     private static final int TIMEOUT_SECONDS = 120;
+    private static final boolean IS_WINDOWS =
+            System.getProperty("os.name", "").toLowerCase().contains("win");
 
     @Override
     public void convertToPdfA(Path inputPdf, Path outputPdf) throws PdfConversionException {
@@ -79,6 +81,7 @@ public class GhostscriptConversionServiceImpl implements PdfConversionService {
         int exitCode = process.exitValue();
         if (exitCode != 0) {
             log.error("Ghostscript a échoué (code {}). Sortie :\n{}", exitCode, output);
+            try { Files.deleteIfExists(outputPdf); } catch (IOException ignored) {}
             throw new PdfConversionException(
                     "Ghostscript a échoué (code " + exitCode + "). Détails : " + output.strip());
         }
@@ -102,8 +105,7 @@ public class GhostscriptConversionServiceImpl implements PdfConversionService {
         // 1. Chemin embarqué via jpackage (propriété app.dir)
         String appDir = System.getProperty("app.dir");
         if (appDir != null) {
-            boolean isWindows = System.getProperty("os.name", "").toLowerCase().contains("win");
-            String gsExe = isWindows ? "gswin64c.exe" : "gs";
+            String gsExe = IS_WINDOWS ? "gswin64c.exe" : "gs";
             Path bundled = Path.of(appDir, "ghostscript", "bin", gsExe);
             if (Files.isExecutable(bundled)) {
                 log.debug("Ghostscript embarqué trouvé : {}", bundled);
@@ -112,7 +114,7 @@ public class GhostscriptConversionServiceImpl implements PdfConversionService {
         }
 
         // 2. Fallback : PATH système
-        String[] candidates = System.getProperty("os.name", "").toLowerCase().contains("win")
+        String[] candidates = IS_WINDOWS
                 ? new String[]{"gswin64c", "gswin32c", "gs"}
                 : new String[]{"gs"};
 

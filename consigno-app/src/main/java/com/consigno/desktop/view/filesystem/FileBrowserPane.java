@@ -44,6 +44,7 @@ public class FileBrowserPane extends VBox {
     private Consumer<Path> onValidateRequested;
     private Consumer<Path> onConvertRequested;
     private Consumer<Path> onOpenWithAdobeRequested;
+    private Consumer<Path> onDeleteRequested;
     private boolean        adobeAvailable = false;
 
     public FileBrowserPane() {
@@ -60,6 +61,7 @@ public class FileBrowserPane extends VBox {
                 path -> { if (onValidateRequested      != null) onValidateRequested.accept(path); },
                 path -> { if (onConvertRequested       != null) onConvertRequested.accept(path); },
                 path -> { if (onOpenWithAdobeRequested != null) onOpenWithAdobeRequested.accept(path); },
+                path -> { if (onDeleteRequested        != null) onDeleteRequested.accept(path); },
                 () -> adobeAvailable
         ));
         VBox.setVgrow(treeView, Priority.ALWAYS);
@@ -84,6 +86,7 @@ public class FileBrowserPane extends VBox {
     public void setOnValidateRequested(Consumer<Path> callback)      { this.onValidateRequested = callback; }
     public void setOnConvertRequested(Consumer<Path> callback)       { this.onConvertRequested = callback; }
     public void setOnOpenWithAdobeRequested(Consumer<Path> callback) { this.onOpenWithAdobeRequested = callback; }
+    public void setOnDeleteRequested(Consumer<Path> callback)        { this.onDeleteRequested = callback; }
     public void setAdobeAvailable(boolean available)                 { this.adobeAvailable = available; }
 
     /** Recharge le nœud racine (utile après une signature in-place). */
@@ -173,22 +176,36 @@ public class FileBrowserPane extends VBox {
 
     private static final class PathTreeCell extends TreeCell<Path> {
 
-        private final Consumer<Path>  openCb;
-        private final Consumer<Path>  signCb;
-        private final Consumer<Path>  validateCb;
-        private final Consumer<Path>  convertCb;
-        private final Consumer<Path>  adobeCb;
         private final BooleanSupplier adobeAvailableSupplier;
+
+        private final MenuItem openItem     = new MenuItem("Ouvrir");
+        private final MenuItem signItem     = new MenuItem("Signer");
+        private final MenuItem validateItem = new MenuItem("Valider les signatures");
+        private final MenuItem convertItem  = new MenuItem("Convertir en PDF/A");
+        private final MenuItem revealItem   = new MenuItem("Révéler dans l'explorateur");
+        private final MenuItem adobeItem    = new MenuItem("Ouvrir avec Adobe Acrobat");
+        private final MenuItem deleteItem   = new MenuItem("Supprimer");
+        private final SeparatorMenuItem separator       = new SeparatorMenuItem();
+        private final SeparatorMenuItem separatorDelete = new SeparatorMenuItem();
+        private final ContextMenu pdfContextMenu;
 
         PathTreeCell(Consumer<Path> openCb, Consumer<Path> signCb,
                      Consumer<Path> validateCb, Consumer<Path> convertCb,
-                     Consumer<Path> adobeCb, BooleanSupplier adobeAvailableSupplier) {
-            this.openCb                 = openCb;
-            this.signCb                 = signCb;
-            this.validateCb             = validateCb;
-            this.convertCb              = convertCb;
-            this.adobeCb                = adobeCb;
+                     Consumer<Path> adobeCb, Consumer<Path> deleteCb,
+                     BooleanSupplier adobeAvailableSupplier) {
             this.adobeAvailableSupplier = adobeAvailableSupplier;
+
+            openItem.setOnAction(e     -> openCb.accept(getItem()));
+            signItem.setOnAction(e     -> signCb.accept(getItem()));
+            validateItem.setOnAction(e -> validateCb.accept(getItem()));
+            convertItem.setOnAction(e  -> convertCb.accept(getItem()));
+            revealItem.setOnAction(e   -> reveal(getItem()));
+            adobeItem.setOnAction(e    -> adobeCb.accept(getItem()));
+            deleteItem.setOnAction(e   -> deleteCb.accept(getItem()));
+
+            pdfContextMenu = new ContextMenu(
+                    openItem, signItem, validateItem, convertItem,
+                    adobeItem, separator, revealItem, separatorDelete, deleteItem);
         }
 
         @Override
@@ -209,36 +226,9 @@ public class FileBrowserPane extends VBox {
             if (isDir) {
                 setContextMenu(null);
             } else {
-                setContextMenu(buildContextMenu(item));
+                adobeItem.setVisible(adobeAvailableSupplier.getAsBoolean());
+                setContextMenu(pdfContextMenu);
             }
-        }
-
-        private ContextMenu buildContextMenu(Path pdf) {
-            MenuItem openItem     = new MenuItem("Ouvrir");
-            MenuItem signItem     = new MenuItem("Signer");
-            MenuItem validateItem = new MenuItem("Valider les signatures");
-            MenuItem convertItem  = new MenuItem("Convertir en PDF/A");
-            MenuItem revealItem   = new MenuItem("Révéler dans l'explorateur");
-
-            openItem.setOnAction(e     -> openCb.accept(pdf));
-            signItem.setOnAction(e     -> signCb.accept(pdf));
-            validateItem.setOnAction(e -> validateCb.accept(pdf));
-            convertItem.setOnAction(e  -> convertCb.accept(pdf));
-            revealItem.setOnAction(e   -> reveal(pdf));
-
-            List<MenuItem> items = new ArrayList<>(List.of(
-                    openItem, signItem, validateItem, convertItem));
-
-            if (adobeAvailableSupplier.getAsBoolean()) {
-                MenuItem adobeItem = new MenuItem("Ouvrir avec Adobe Acrobat");
-                adobeItem.setOnAction(e -> adobeCb.accept(pdf));
-                items.add(adobeItem);
-            }
-
-            items.add(new SeparatorMenuItem());
-            items.add(revealItem);
-
-            return new ContextMenu(items.toArray(new MenuItem[0]));
         }
 
         private static void reveal(Path pdf) {

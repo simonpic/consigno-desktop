@@ -60,6 +60,9 @@ logs/
 *.jks
 *.keystore
 
+# Claude Code — config locale (permissions personnelles, non partageable)
+.claude/settings.local.json
+
 # Fichiers temporaires
 *.tmp
 *.bak

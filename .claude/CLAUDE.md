@@ -12,6 +12,12 @@ Application desktop multiplateforme de signature électronique de PDF.
 
 ---
 
+## Règles de workflow Git
+
+- **Ne jamais `git push`** sans demande explicite — créer les commits localement uniquement
+
+---
+
 ## Ce que Claude ne doit PAS générer
 
 > Lire cette section avant toute génération de code.
